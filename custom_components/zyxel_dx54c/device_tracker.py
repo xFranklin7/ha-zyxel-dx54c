@@ -46,9 +46,13 @@ class ZyxelDeviceTracker(CoordinatorEntity, ScannerEntity):
         self.mac = mac
         self._last_seen = None
         self._attr_unique_id = f"{mac.replace(':', '').lower()}_presence"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, mac)},
-            "name": f"Wi-Fi client {mac}",
+    @property
+    def device_info(self):
+        """Expose the router-reported host name when one is available."""
+        station = self.coordinator.known_stations.get(self.mac, {})
+        return {
+            "identifiers": {(DOMAIN, self.mac)},
+            "name": station.get("name") or f"Wi-Fi client {self.mac}",
             "manufacturer": "Zyxel",
             "model": "DX54C Wi-Fi client",
         }
