@@ -42,10 +42,22 @@ def _unpack(data: dict[str, Any], key: bytes) -> Any:
         raise ZyxelError("Risposta cifrata del router non valida.") from err
 
 
-def _stations(raw: Any, band: str) -> list[dict[str, Any]]:
+def _station_fields(raw: Any) -> list[str]:
     if raw is None:
         return []
-    fields = str(raw).strip().strip('"').split()
+    if isinstance(raw, list):
+        fields: list[str] = []
+        for item in raw:
+            fields.extend(item.split() if isinstance(item, str) else [str(item)])
+        return fields
+    text = str(raw).strip()
+    if len(text) >= 2 and text[0] == text[-1] == '"':
+        text = text[1:-1]
+    return text.split()
+
+
+def _stations(raw: Any, band: str) -> list[dict[str, Any]]:
+    fields = _station_fields(raw)
     result = []
     for pos in range(5, len(fields) - 4, 5):
         mac, rate, rssi, snr, level = fields[pos:pos + 5]
@@ -61,6 +73,7 @@ def _stations(raw: Any, band: str) -> list[dict[str, Any]]:
 
 class ZyxelDX54CAPI:
     """Session client; only reads the wireless station table."""
+
     def __init__(self, host: str, username: str, password: str) -> None:
         self.host = host.rstrip("/")
         self.username = username
@@ -107,6 +120,7 @@ class ZyxelDX54CAPI:
     async def async_get_stations(self) -> list[dict[str, Any]]:
         if not self._session_key:
             await self.async_login()
+        # Verified frontend behavior: plain GET, no request body and no CSRF header.
         body = await self._request("GET", "/cgi-bin/WLANTable_handle")
         if isinstance(body, dict) and "iv" in body and "content" in body:
             body = _unpack(body, self._key)
