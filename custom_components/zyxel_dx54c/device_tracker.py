@@ -34,6 +34,8 @@ class ZyxelDeviceTracker(CoordinatorEntity, ScannerEntity):
     _attr_has_entity_name = True
     _attr_name = "Presence"
     _attr_icon = "mdi:wifi"
+    # ScannerEntity is disabled by default in Home Assistant 2026.11.
+    _attr_entity_registry_enabled_default = True
 
     def __init__(self, coordinator: ZyxelDataUpdateCoordinator, mac: str) -> None:
         super().__init__(coordinator)
