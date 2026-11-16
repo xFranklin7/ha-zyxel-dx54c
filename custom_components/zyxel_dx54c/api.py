@@ -85,7 +85,7 @@ class ZyxelDX54CAPI:
 
     async def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         if self._http is None or self._http.closed:
-            self._http = aiohttp.ClientSession(timeout=self._timeout)
+            self._http = aiohttp.ClientSession(timeout=self._timeout, cookie_jar=aiohttp.CookieJar(unsafe=True))
         try:
             async with self._http.request(method, self.host + path, **kwargs) as response:
                 response.raise_for_status()
