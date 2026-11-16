@@ -73,3 +73,18 @@ def test_ignore_malformed_station_rows():
         "24:5E:BE:12:34:56 invalid -51 39 4"
     )
     assert _stations(raw, "2.4 GHz") == []
+
+
+
+def test_parse_arp_host_names_by_mac():
+    raw = [
+        {"mac": "70:c9:32:f8:dc:0f", "ip": "192.168.1.20", "name": "Camera-iPhone"},
+        {"mac": "D4-D4-DA-4D-49-C4", "ip": "192.168.1.21", "name": "Unknown"},
+        {"mac": "24:5E:BE:12:34:56", "ip": "192.168.1.22", "name": ""},
+    ]
+    assert _API._hostnames(raw) == {"70:C9:32:F8:DC:0F": "Camera-iPhone"}
+
+
+def test_parse_arp_wrapped_response():
+    raw = [{"result": [{"mac": "24:5e:be:12:34:56", "name": "Living-Room-TV"}]}]
+    assert _API._hostnames(raw) == {"24:5E:BE:12:34:56": "Living-Room-TV"}
