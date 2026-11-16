@@ -47,14 +47,12 @@ class ZyxelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        return ZyxelOptionsFlow(config_entry)
+        """Create the options flow."""
+        return ZyxelOptionsFlow()
 
 
-class ZyxelOptionsFlow(config_entries.OptionsFlow):
-    """Configure polling options."""
-
-    def __init__(self, config_entry):
-        self.config_entry = config_entry
+class ZyxelOptionsFlow(config_entries.OptionsFlowWithReload):
+    """Configure polling options and reload the entry automatically."""
 
     async def async_step_init(self, user_input=None):
         if user_input is not None:
