@@ -14,7 +14,7 @@ Un'integrazione locale e in sola lettura per Home Assistant che rileva i disposi
 - Creazione dinamica di device tracker per gli indirizzi MAC rilevati.
 - Sensori per ogni dispositivo: RSSI, SNR, velocità del collegamento e livello del segnale.
 - Recupero del nome del dispositivo dalla tabella ARP in sola lettura del router, quando disponibile, tramite associazione con il MAC.
-- Intervallo di aggiornamento configurabile da 30 a 600 secondi (60 secondi predefiniti).
+- Intervallo di aggiornamento configurabile da 15 a 600 secondi (60 secondi predefiniti).
 - Diagnostica senza password, token di sessione o indirizzi MAC dei client.
 
 ## Protocollo del router verificato finora
