@@ -1,11 +1,14 @@
 """Track Wi-Fi association for clients seen by the router."""
 from __future__ import annotations
 
-from homeassistant.components.device_tracker.config_entry import ScannerEntity
+from datetime import timedelta
+
+from homeassistant.components.device_tracker import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import ZyxelDataUpdateCoordinator
@@ -36,10 +39,12 @@ class ZyxelDeviceTracker(CoordinatorEntity, ScannerEntity):
     _attr_icon = "mdi:wifi"
     # ScannerEntity is disabled by default in Home Assistant 2026.11.
     _attr_entity_registry_enabled_default = True
+    _consider_home = timedelta(seconds=90)
 
     def __init__(self, coordinator: ZyxelDataUpdateCoordinator, mac: str) -> None:
         super().__init__(coordinator)
         self.mac = mac
+        self._last_seen = None
         self._attr_unique_id = f"{mac.replace(':', '').lower()}_presence"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, mac)},
@@ -50,7 +55,9 @@ class ZyxelDeviceTracker(CoordinatorEntity, ScannerEntity):
 
     @property
     def is_connected(self) -> bool:
-        return self.mac in (self.coordinator.data or {})
+        if self.mac in (self.coordinator.data or {}):
+            self._last_seen = dt_util.utcnow()
+        return self._last_seen is not None and dt_util.utcnow() - self._last_seen < self._consider_home
 
     @property
     def mac_address(self) -> str:
