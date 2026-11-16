@@ -13,9 +13,20 @@ A local, read-only Home Assistant integration for discovering Wi-Fi clients conn
 - Asynchronous polling through Home Assistant's coordinator.
 - Dynamic device trackers for discovered MAC addresses.
 - Per-client sensors for RSSI, SNR, link rate, and signal level.
-- Device names enriched from the router's read-only ARP table when available, matched by MAC address.
 - Configurable polling interval (15–600 seconds; default 60).
 - Diagnostics that omit passwords, session tokens, and client MAC addresses.
+
+## Device names
+
+**Device names must be assigned manually in Home Assistant.** The integration discovers Wi-Fi clients and identifies them by MAC address, but the ARP table on the tested DX54C firmware does not provide usable hostnames. Therefore, the integration cannot automatically determine descriptive names such as “iPhone”, “Living room TV”, or “Laptop”.
+
+After a device has been discovered:
+
+1. Open **Settings → Devices & services → Devices** in Home Assistant.
+2. Select the device created by the Zyxel integration.
+3. Open the device settings and change its name to a recognizable label.
+
+The name assigned in Home Assistant makes the device easier to identify in dashboards and automations. If a device uses a private or randomized MAC address, you may need to rename it again when it appears with a different MAC.
 
 ## Router protocol verified so far
 
@@ -23,7 +34,6 @@ A local, read-only Home Assistant integration for discovering Wi-Fi clients conn
 - WLAN station table: plain `GET /cgi-bin/WLANTable_handle`, using the same HTTP session/cookies.
 - The WLAN endpoint is read-only. No router configuration is changed.
 - The table provides 2.4 GHz and 5 GHz client records, including MAC, link rate, RSSI, SNR, and signal level.
-- A separate read-only `GET /cgi-bin/ARPTable_handle` provides IP/MAC/name records; names are joined to Wi-Fi clients by MAC. If the router has no name for a client or the ARP lookup fails, Wi-Fi tracking continues and the MAC-based fallback name is used.
 
 ## Presence limitations
 
