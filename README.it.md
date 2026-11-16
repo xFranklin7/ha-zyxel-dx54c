@@ -13,9 +13,20 @@ Un'integrazione locale e in sola lettura per Home Assistant che rileva i disposi
 - Interrogazioni asincrone tramite il coordinator di Home Assistant.
 - Creazione dinamica di device tracker per gli indirizzi MAC rilevati.
 - Sensori per ogni dispositivo: RSSI, SNR, velocità del collegamento e livello del segnale.
-- Recupero del nome del dispositivo dalla tabella ARP in sola lettura del router, quando disponibile, tramite associazione con il MAC.
 - Intervallo di aggiornamento configurabile da 15 a 600 secondi (60 secondi predefiniti).
 - Diagnostica senza password, token di sessione o indirizzi MAC dei client.
+
+## Nomi dei dispositivi
+
+**I nomi dei dispositivi devono essere assegnati manualmente in Home Assistant.** L'integrazione rileva i client Wi-Fi e li identifica tramite il loro indirizzo MAC, ma sul firmware del DX54C verificato la tabella ARP del router non fornisce nomi host utilizzabili. Di conseguenza, non è possibile ricavare automaticamente nomi descrittivi come “iPhone”, “TV soggiorno” o “portatile”.
+
+Dopo che un dispositivo è stato rilevato:
+
+1. Apri **Impostazioni → Dispositivi e servizi → Dispositivi** in Home Assistant.
+2. Seleziona il dispositivo creato dall'integrazione Zyxel.
+3. Apri le impostazioni del dispositivo e modifica il nome con un'etichetta riconoscibile.
+
+Il nome impostato in Home Assistant serve a identificarlo più facilmente nelle dashboard e nelle automazioni. Se un dispositivo usa un indirizzo MAC privato o casuale, potrebbe essere necessario rinominarlo nuovamente quando compare con un MAC diverso.
 
 ## Protocollo del router verificato finora
 
@@ -23,7 +34,6 @@ Un'integrazione locale e in sola lettura per Home Assistant che rileva i disposi
 - Tabella dei dispositivi Wi-Fi: richiesta semplice `GET /cgi-bin/WLANTable_handle`, utilizzando la stessa sessione HTTP e i relativi cookie.
 - L'endpoint Wi-Fi è in sola lettura: non viene modificata alcuna impostazione del router.
 - La tabella restituisce i dispositivi collegati alle reti a 2,4 GHz e 5 GHz, con MAC, velocità del collegamento, RSSI, SNR e livello del segnale.
-- Una seconda richiesta in sola lettura a `GET /cgi-bin/ARPTable_handle` recupera le associazioni IP/MAC/nome; i nomi vengono associati ai client Wi-Fi tramite MAC. Se il router non conosce il nome o la richiesta ARP non riesce, il rilevamento Wi-Fi continua normalmente e viene mantenuto il nome di ripiego basato sul MAC.
 
 ## Limiti del rilevamento della presenza
 
