@@ -1,0 +1,4 @@
+{
+  "config": {"step": {"user": {"title": "Collega il router Zyxel", "description": "Inserisci l'indirizzo locale del router e le credenziali amministratore.", "data": {"host": "Indirizzo del router", "username": "Nome utente", "password": "Password"}}}, "error": {"cannot_connect": "Autenticazione o lettura della tabella Wi-Fi non riuscita."}, "abort": {"already_configured": "Questo router è già configurato."}},
+  "options": {"step": {"init": {"title": "Intervallo di aggiornamento", "data": {"scan_interval": "Intervallo di aggiornamento (secondi)"}}}}
+}
