@@ -66,3 +66,12 @@ class ZyxelDeviceTracker(CoordinatorEntity, ScannerEntity):
     @property
     def mac_address(self) -> str:
         return self.mac
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str]:
+        """Expose both the hardware address and router-reported host name."""
+        station = self.coordinator.known_stations.get(self.mac, {})
+        attributes = {"mac": self.mac}
+        if station.get("name"):
+            attributes["device_name"] = station["name"]
+        return attributes
