@@ -52,9 +52,13 @@ class ZyxelClientSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = name
         self._attr_native_unit_of_measurement = unit
         self._attr_unique_id = f"{mac.replace(':', '').lower()}_{key}"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, mac)},
-            "name": f"Wi-Fi client {mac}",
+    @property
+    def device_info(self):
+        """Expose the router-reported host name when one is available."""
+        station = self.coordinator.known_stations.get(self.mac, {})
+        return {
+            "identifiers": {(DOMAIN, self.mac)},
+            "name": station.get("name") or f"Wi-Fi client {self.mac}",
             "manufacturer": "Zyxel",
             "model": "DX54C Wi-Fi client",
         }
@@ -67,4 +71,10 @@ class ZyxelClientSensor(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         station = (self.coordinator.data or {}).get(self.mac)
-        return {"mac": self.mac, "band": station.get("band")} if station else {"mac": self.mac}
+        known = self.coordinator.known_stations.get(self.mac, {})
+        attributes = {"mac": self.mac}
+        if station:
+            attributes["band"] = station.get("band")
+        if known.get("name"):
+            attributes["device_name"] = known["name"]
+        return attributes
