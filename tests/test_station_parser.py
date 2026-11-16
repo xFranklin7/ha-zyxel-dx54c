@@ -52,3 +52,24 @@ def test_aes_envelope_round_trip():
     key = os.urandom(32)
     payload = {"result": "ZCFG_SUCCESS", "sessionkey": "test-session"}
     assert _unpack(_pack(payload, key), key) == payload
+
+
+def test_parse_five_ghz_station():
+    raw = "MACAddress Rate RSSI SNR Level 24:5E:BE:12:34:56 866000 -51 39 4"
+    assert _stations(raw, "5 GHz") == [{
+        "mac": "24:5E:BE:12:34:56",
+        "band": "5 GHz",
+        "rate_mbps": 866.0,
+        "rssi": -51,
+        "snr": 39,
+        "level": 4,
+    }]
+
+
+def test_ignore_malformed_station_rows():
+    raw = (
+        "MACAddress Rate RSSI SNR Level "
+        "not-a-mac 1000 -50 30 3 "
+        "24:5E:BE:12:34:56 invalid -51 39 4"
+    )
+    assert _stations(raw, "2.4 GHz") == []
