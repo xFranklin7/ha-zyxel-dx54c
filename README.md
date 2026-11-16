@@ -1,37 +1,51 @@
 # Zyxel Router integration for Home Assistant
 
-A custom Home Assistant integration for reading connected Wi-Fi stations from Zyxel routers, starting with the Zyxel DX54C.
+A local, read-only Home Assistant integration for discovering Wi-Fi clients connected to Zyxel routers. The first supported target is the **Zyxel DX54C**.
 
-> **Development status:** early development. The DX54C login and WLAN station-table request have been verified with a standalone Python client. The Home Assistant integration is not yet ready for installation.
+> **Development status: experimental.** The DX54C authentication exchange and WLAN station-table endpoint have been verified using a standalone Python client. The Home Assistant integration code is being developed and has not yet been validated against a live Home Assistant installation. Do not treat the current `main` branch as a stable release.
 
-## Goals
+## Current implementation
 
-- Local communication with the router; no cloud service.
-- Configure router address and credentials through the Home Assistant UI.
-- Discover associated Wi-Fi clients and expose presence plus available radio metrics.
-- Keep credentials out of logs and diagnostics.
-- Separate model-specific protocol handling so additional Zyxel models can be added later.
-- Provide tests and documentation suitable for eventual HACS distribution.
+- Local router communication; no cloud service.
+- UI configuration with router address, username, and password.
+- Asynchronous polling through Home Assistant's coordinator.
+- Dynamic device trackers for discovered MAC addresses.
+- Per-client sensors for RSSI, SNR, link rate, and signal level.
+- Configurable polling interval (30–600 seconds; default 60).
+- Diagnostics that omit passwords, session tokens, and client MAC addresses.
 
-## Initial target
+## Router protocol verified so far
 
-- Router: Zyxel DX54C
-- Station table endpoint: `GET /cgi-bin/WLANTable_handle`
-- Bands: 2.4 GHz and 5 GHz
-- Refresh target: 60 seconds initially
+- Authentication: `GET /getRSAPublickKey`, followed by encrypted `POST /UserLogin`.
+- WLAN station table: plain `GET /cgi-bin/WLANTable_handle`, using the same HTTP session/cookies.
+- The WLAN endpoint is read-only. No router configuration is changed.
+- The table provides 2.4 GHz and 5 GHz client records, including MAC, link rate, RSSI, SNR, and signal level.
 
-Wi-Fi association indicates that a client is connected to the access point. It does not provide room-level location or Bluetooth-style ranging.
+## Presence limitations
+
+A device tracker reports whether a MAC address is currently associated with the router's Wi-Fi. This is not Bluetooth ranging, room detection, or proof that a person is physically inside the home. Devices using randomized/private MAC addresses may appear as separate clients.
 
 ## Installation
 
-Not available yet. This repository is under active development; do not copy it into `custom_components` until a tested release is published.
+There is no stable HACS release yet. Wait for a tagged release and installation instructions before adding this integration to a production Home Assistant instance.
 
-## Security
+For development, the integration directory is `custom_components/zyxel_dx54c`.
 
-Never publish router passwords, session cookies, AES session keys, exported browser storage, or unredacted diagnostic output. Report protocol problems with MAC addresses anonymized where possible.
+## Security and privacy
 
-## Development
+- Never commit router passwords, cookies, session keys, AES keys, or browser storage.
+- Do not include unredacted client MAC addresses in public issue reports.
+- The diagnostics endpoint intentionally reports counts by band instead of listing client identifiers.
+- Use a unique, strong router administrator password.
 
-The first milestone is to port the already verified DX54C authentication and WLAN-table parsing into an asynchronous Home Assistant client, then add config flow, coordinator, sensors, device trackers, and automated tests.
+## Development and tests
 
-Contributions and reports for other Zyxel models are welcome, but support for a model will only be advertised after it has been tested.
+The parser tests are under `tests/`. The project will add Home Assistant config-flow and coordinator tests before the first release.
+
+## Roadmap
+
+1. Validate login and polling from Home Assistant against a real DX54C.
+2. Add session-expiry recovery and robust firmware response handling.
+3. Complete automated Home Assistant tests and CI.
+4. Add support for other Zyxel models only after protocol verification.
+5. Publish a tagged release and HACS installation guide.
