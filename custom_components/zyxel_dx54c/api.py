@@ -102,7 +102,7 @@ def _hostnames(raw: Any) -> dict[str, str]:
 
 
 class ZyxelDX54CAPI:
-    """Session client; only reads the wireless station table."""
+    """Session client; reads Wi-Fi stations and ARP names without changing the router."""
 
     def __init__(self, host: str, username: str, password: str) -> None:
         self.host = host.rstrip("/")
