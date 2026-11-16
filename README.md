@@ -1,5 +1,7 @@
 # Zyxel Router integration for Home Assistant
 
+[English](README.md) · [Italiano](README.it.md)
+
 A local, read-only Home Assistant integration for discovering Wi-Fi clients connected to Zyxel routers. The first supported target is the **Zyxel DX54C**.
 
 > **Development status: experimental.** The DX54C authentication exchange and WLAN station-table endpoint have been verified using a standalone Python client. The Home Assistant integration code is being developed and has not yet been validated against a live Home Assistant installation. Do not treat the current `main` branch as a stable release.
