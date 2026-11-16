@@ -1,7 +1,26 @@
-"""Unit tests for the DX54C protocol helpers."""
-import os
+"""Unit tests for the DX54C protocol helpers.
 
-from custom_components.zyxel_dx54c.api import _pack, _stations, _unpack
+Load api.py directly so these protocol tests do not require the full
+Home Assistant runtime just to import the integration package.
+"""
+import importlib.util
+import os
+from pathlib import Path
+
+_API_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "custom_components"
+    / "zyxel_dx54c"
+    / "api.py"
+)
+_SPEC = importlib.util.spec_from_file_location("zyxel_dx54c_api", _API_PATH)
+assert _SPEC is not None and _SPEC.loader is not None
+_API = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(_API)
+
+_pack = _API._pack
+_stations = _API._stations
+_unpack = _API._unpack
 
 
 def test_parse_two_point_four_ghz_station():
