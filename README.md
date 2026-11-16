@@ -14,7 +14,7 @@ A local, read-only Home Assistant integration for discovering Wi-Fi clients conn
 - Dynamic device trackers for discovered MAC addresses.
 - Per-client sensors for RSSI, SNR, link rate, and signal level.
 - Device names enriched from the router's read-only ARP table when available, matched by MAC address.
-- Configurable polling interval (30–600 seconds; default 60).
+- Configurable polling interval (15–600 seconds; default 60).
 - Diagnostics that omit passwords, session tokens, and client MAC addresses.
 
 ## Router protocol verified so far
