@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import os
 from typing import Any
 
@@ -11,6 +12,9 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.padding import PKCS7
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ZyxelError(Exception):
@@ -71,6 +75,32 @@ def _stations(raw: Any, band: str) -> list[dict[str, Any]]:
     return result
 
 
+def _hostnames(raw: Any) -> dict[str, str]:
+    """Return useful host names indexed by normalized MAC address."""
+    if isinstance(raw, dict):
+        raw = raw.get("result", [])
+    if isinstance(raw, list) and raw and isinstance(raw[0], dict) and "result" in raw[0]:
+        raw = raw[0].get("result", [])
+
+    if not isinstance(raw, list):
+        return {}
+
+    names: dict[str, str] = {}
+    for host in raw:
+        if not isinstance(host, dict):
+            continue
+        mac = str(host.get("mac", "")).strip().replace("-", ":").upper()
+        name = str(host.get("name", "")).strip()
+        if (
+            len(mac) == 17
+            and mac.count(":") == 5
+            and name
+            and name.lower() not in {"unknown", "none", "null"}
+        ):
+            names[mac] = name
+    return names
+
+
 class ZyxelDX54CAPI:
     """Session client; only reads the wireless station table."""
 
@@ -128,7 +158,28 @@ class ZyxelDX54CAPI:
             body = body[0]
         if not isinstance(body, dict):
             raise ZyxelError("Tabella WLAN con formato non riconosciuto.")
-        return _stations(body.get("result"), "2.4 GHz") + _stations(body.get("result5"), "5 GHz")
+        stations = _stations(body.get("result"), "2.4 GHz") + _stations(
+            body.get("result5"), "5 GHz"
+        )
+
+        # The WLAN table has no hostname field. The router's read-only ARP
+        # table provides MAC/IP/name records, which we join by MAC address.
+        try:
+            arp_data = await self._request("GET", "/cgi-bin/ARPTable_handle")
+            if isinstance(arp_data, dict) and "iv" in arp_data and "content" in arp_data:
+                arp_data = _unpack(arp_data, self._key)
+            if isinstance(arp_data, list) and arp_data and isinstance(arp_data[0], dict):
+                arp_data = arp_data[0]
+            hostnames = _hostnames(arp_data.get("result")) if isinstance(arp_data, dict) else {}
+        except ZyxelError:
+            # Hostname enrichment is optional: a missing ARP table must not
+            # make otherwise valid Wi-Fi presence tracking unavailable.
+            _LOGGER.debug("Unable to retrieve Zyxel ARP host names", exc_info=True)
+            hostnames = {}
+
+        for station in stations:
+            station["name"] = hostnames.get(station["mac"])
+        return stations
 
     async def async_close(self) -> None:
         if self._http and not self._http.closed:
